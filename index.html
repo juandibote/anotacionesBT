@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f2a37">
+<meta name="color-scheme" content="light dark">
+<title>Anotaciones PT/CD</title>
+<style>
+:root{
+  --bg:#edf0f4; --surface:#ffffff; --text:#16202b; --muted:#566272; --line:#d3d9e1;
+  --brand:#1f2a37; --brand-text:#ffffff; --focus:#1f6fd1;
+  --def:#d63333; --def-bg:#fde8e8; --def-ink:#9b1c1c;
+  --sec:#1f6fd1; --sec-bg:#e3eefc; --sec-ink:#134a95;
+  --pen:#e69500; --pen-bg:#fff0d0; --pen-ink:#8a5200;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#10161d; --surface:#1b242e; --text:#eef2f6; --muted:#9fb0c1; --line:#31404f;
+    --brand:#0b1016; --brand-text:#ffffff; --focus:#6fa8f5;
+    --def:#ef5b5b; --def-bg:#3a1d1f; --def-ink:#ffb4b4;
+    --sec:#5b9bf0; --sec-bg:#17283d; --sec-ink:#b5d3fb;
+    --pen:#f2a91f; --pen-bg:#3a2d12; --pen-ink:#ffd98a;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+.top{
+  background:var(--brand); color:var(--brand-text);
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;
+  position:sticky; top:0; z-index:5;
+  display:flex; align-items:center; gap:10px;
+}
+.top h1{margin:0; font-size:20px; font-weight:700; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.top .iconbtn{
+  background:rgba(255,255,255,.14); color:#fff; border:0; border-radius:10px;
+  min-height:44px; padding:0 14px; font-weight:600; cursor:pointer;
+}
+.wrap{max-width:640px; margin:0 auto; padding:16px 14px 40px}
+
+.card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px}
+.card h2{margin:0 0 10px; font-size:17px}
+label.field{display:block; font-size:14px; font-weight:600; color:var(--muted); margin-bottom:10px}
+label.field input,label.field textarea{
+  display:block; width:100%; margin-top:4px; padding:12px; font-size:16px; font-weight:400; color:var(--text);
+  background:var(--bg); border:1.5px solid var(--line); border-radius:10px;
+}
+label.field textarea{min-height:70px; resize:vertical}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+
+.btn{
+  display:block; width:100%; min-height:50px; border-radius:10px; border:1.5px solid var(--line);
+  background:var(--surface); font-weight:700; cursor:pointer; padding:0 14px;
+}
+.btn.primary{background:var(--brand); color:var(--brand-text); border-color:var(--brand)}
+.btn.small{display:inline-block; width:auto; min-height:42px; font-size:14px; font-weight:600}
+.btn.danger{color:var(--def-ink); border-color:var(--def)}
+.btn-row{display:flex; gap:8px; flex-wrap:wrap}
+
+/* Categorías */
+.cats{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:2px 0 12px}
+.cats legend{font-size:14px; font-weight:600; color:var(--muted); padding:0; margin-bottom:4px}
+fieldset.catset{border:0; padding:0; margin:0 0 4px; min-width:0}
+.cat{position:relative}
+.cat input{position:absolute; opacity:0; inset:0; width:100%; height:100%; margin:0; cursor:pointer}
+.cat span{
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  min-height:58px; padding:6px; border-radius:10px; font-weight:700; font-size:14px; line-height:1.2;
+  border:2px solid transparent;
+}
+.cat.def span{background:var(--def-bg); color:var(--def-ink); border-color:var(--def-bg)}
+.cat.sec span{background:var(--sec-bg); color:var(--sec-ink); border-color:var(--sec-bg)}
+.cat.pen span{background:var(--pen-bg); color:var(--pen-ink); border-color:var(--pen-bg)}
+.cat.def input:checked + span{background:var(--def); color:#fff; border-color:var(--def)}
+.cat.sec input:checked + span{background:var(--sec); color:#fff; border-color:var(--sec)}
+.cat.pen input:checked + span{background:var(--pen); color:#1b1200; border-color:var(--pen)}
+.cat input:focus-visible + span{outline:3px solid var(--focus); outline-offset:2px}
+
+/* Filtros */
+.chips{display:flex; gap:8px; overflow-x:auto; padding:2px 0 12px; scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto; min-height:42px; padding:0 14px; border-radius:21px; border:1.5px solid var(--line);
+  background:var(--surface); font-weight:600; font-size:14px; cursor:pointer;
+}
+.chip[aria-pressed="true"]{background:var(--brand); color:var(--brand-text); border-color:var(--brand)}
+
+/* Badges */
+.badge{display:inline-block; padding:3px 9px; border-radius:12px; font-size:13px; font-weight:700}
+.badge.def{background:var(--def-bg); color:var(--def-ink)}
+.badge.sec{background:var(--sec-bg); color:var(--sec-ink)}
+.badge.pen{background:var(--pen-bg); color:var(--pen-ink)}
+.badges{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px}
+
+/* Lista de PT */
+.ptitem{
+  display:block; width:100%; text-align:left; background:var(--surface); border:1px solid var(--line);
+  border-radius:12px; padding:14px; margin-bottom:10px; cursor:pointer;
+}
+.ptitem .name{font-size:18px; font-weight:700}
+.ptitem .meta{font-size:13px; color:var(--muted)}
+
+/* Anotaciones */
+.note{
+  background:var(--surface); border:1px solid var(--line); border-left-width:8px;
+  border-radius:12px; padding:12px 12px 10px; margin-bottom:10px;
+}
+.note.def{border-left-color:var(--def)}
+.note.sec{border-left-color:var(--sec)}
+.note.pen{border-left-color:var(--pen)}
+.note .head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px}
+.note .apoyo{font-size:19px; font-weight:800}
+.note .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:8px}
+.note .grid div{background:var(--bg); border-radius:8px; padding:6px 8px; min-width:0}
+.note .grid small{display:block; font-size:12px; color:var(--muted); font-weight:600}
+.note .grid b{display:block; overflow-wrap:anywhere}
+.note .text{white-space:pre-wrap; overflow-wrap:anywhere; margin:0 0 8px}
+.note.done .apoyo,.note.done .text{text-decoration:line-through; opacity:.6}
+.donebox{display:flex; align-items:center; gap:8px; min-height:42px; font-weight:600; font-size:14px; margin-right:auto}
+.donebox input{width:24px; height:24px}
+
+.empty{text-align:center; color:var(--muted); padding:26px 10px}
+.hint{font-size:13px; color:var(--muted); margin:8px 0 0}
+.toast{
+  position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 20px); transform:translateX(-50%);
+  background:var(--brand); color:#fff; padding:10px 18px; border-radius:24px; font-weight:600;
+  box-shadow:0 4px 14px rgba(0,0,0,.3); z-index:20; max-width:90vw; text-align:center;
+}
+.toast[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function(){
+  'use strict';
+
+  var CATS = {
+    def: 'Cambiar defectos',
+    sec: 'Cambiar secciones',
+    pen: 'Acciones pendientes'
+  };
+  var SHORT = { def: 'Defectos', sec: 'Secciones', pen: 'Pendientes' };
+  var KEY = 'anotaciones-ptcd-v1';
+
+  var data = load();
+  var state = { view: 'home', ptId: null, filter: 'all', editId: null, cat: 'def', salida: '' };
+  var app = document.getElementById('app');
+  var toastEl = document.getElementById('toast');
+  var toastTimer;
+
+  /* ---------- Almacenamiento ---------- */
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      var d = raw ? JSON.parse(raw) : null;
+      if(d && Array.isArray(d.pts)) return d;
+    }catch(e){}
+    return { pts: [] };
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(data)); }
+    catch(e){ toast('No se pudo guardar en este navegador'); }
+  }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function getPT(id){ return data.pts.filter(function(p){ return p.id === id; })[0]; }
+  function counts(pt){
+    var c = { def:0, sec:0, pen:0 };
+    pt.notes.forEach(function(n){ if(c[n.cat] != null) c[n.cat]++; });
+    return c;
+  }
+  function fmtDate(ts){
+    try{ return new Date(ts).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+    catch(e){ return ''; }
+  }
+  function toast(msg){
+    toastEl.textContent = msg; toastEl.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.hidden = true; }, 2200);
+  }
+
+  /* ---------- Vista: inicio ---------- */
+  function badgesHTML(c){
+    return '<div class="badges">' +
+      '<span class="badge def">' + c.def + ' ' + SHORT.def + '</span>' +
+      '<span class="badge sec">' + c.sec + ' ' + SHORT.sec + '</span>' +
+      '<span class="badge pen">' + c.pen + ' ' + SHORT.pen + '</span></div>';
+  }
+
+  function renderHome(){
+    var list = data.pts.slice().sort(function(a,b){ return b.created - a.created; });
+    var items = list.length ? list.map(function(pt){
+      return '<button class="ptitem" data-open="' + pt.id + '">' +
+        '<div class="name">' + esc(pt.name) + '</div>' +
+        '<div class="meta">' + pt.notes.length + ' anotaciones, creado el ' + fmtDate(pt.created) + '</div>' +
+        badgesHTML(counts(pt)) + '</button>';
+    }).join('') : '<div class="empty">Todavía no hay ningún PT/CD. Crea el primero arriba.</div>';
+
+    app.innerHTML =
+      '<header class="top"><h1>Anotaciones PT/CD</h1></header>' +
+      '<main class="wrap">' +
+        '<form id="ptForm" class="card" autocomplete="off">' +
+          '<label class="field">Nuevo PT/CD' +
+            '<input name="name" required placeholder="Número de PT o CD" enterkeyhint="done"></label>' +
+          '<button class="btn primary" type="submit">Crear PT/CD</button>' +
+        '</form>' +
+        items +
+        '<section class="card">' +
+          '<h2>Copia de seguridad</h2>' +
+          '<div class="btn-row">' +
+            '<button class="btn small" data-act="export">Descargar copia</button>' +
+            '<button class="btn small" data-act="import">Cargar copia</button>' +
+          '</div>' +
+          '<input id="importFile" type="file" accept="application/json,.json" hidden>' +
+          '<p class="hint">Los datos se guardan solo en este dispositivo y navegador. Descarga una copia para pasarlos a otro móvil o ordenador.</p>' +
+        '</section>' +
+      '</main>';
+  }
+
+  /* ---------- Vista: PT/CD ---------- */
+  function renderPT(){
+    var pt = getPT(state.ptId);
+    if(!pt){ state.view = 'home'; return render(); }
+    var editing = state.editId ? pt.notes.filter(function(n){ return n.id === state.editId; })[0] : null;
+    var v = editing || { apoyo:'', salida: state.salida, inicio:'', final:'', cat: state.cat, text:'' };
+
+    function catRadio(key){
+      return '<label class="cat ' + key + '"><input type="radio" name="cat" value="' + key + '"' +
+        (v.cat === key ? ' checked' : '') + '><span>' + CATS[key] + '</span></label>';
+    }
+
+    app.innerHTML =
+      '<header class="top">' +
+        '<button class="iconbtn" data-act="back" aria-label="Volver a la lista">Volver</button>' +
+        '<h1>' + esc(pt.name) + '</h1>' +
+      '</header>' +
+      '<main class="wrap">' +
+        '<form id="noteForm" class="card" autocomplete="off">' +
+          '<h2>' + (editing ? 'Editar anotación' : 'Nueva anotación') + '</h2>' +
+          '<label class="field">Número de apoyo' +
+            '<input name="apoyo" required value="' + esc(v.apoyo) + '" enterkeyhint="next"></label>' +
+          '<label class="field">Salida' +
+            '<input name="salida" value="' + esc(v.salida) + '" enterkeyhint="next"></label>' +
+          '<div class="row2">' +
+            '<label class="field">Inicio<input name="inicio" value="' + esc(v.inicio) + '" enterkeyhint="next"></label>' +
+            '<label class="field">Final<input name="final" value="' + esc(v.final) + '" enterkeyhint="next"></label>' +
+          '</div>' +
+          '<fieldset class="catset"><legend>Clasificación</legend>' +
+            '<div class="cats">' + catRadio('def') + catRadio('sec') + catRadio('pen') + '</div>' +
+          '</fieldset>' +
+          '<label class="field">Nota (opcional)<textarea name="text">' + esc(v.text) + '</textarea></label>' +
+          '<button class="btn primary" type="submit">' + (editing ? 'Guardar cambios' : 'Añadir anotación') + '</button>' +
+          (editing ? '<button class="btn" type="button" data-act="cancel-edit" style="margin-top:8px">Cancelar</button>' : '') +
+        '</form>' +
+        '<div id="filters"></div>' +
+        '<div id="list"></div>' +
+        '<div class="btn-row">' +
+          '<button class="btn small" data-act="copy">Copiar resumen</button>' +
+          '<button class="btn small danger" data-act="del-pt">Borrar este PT/CD</button>' +
+        '</div>' +
+      '</main>';
+    renderList();
+  }
+
+  function renderList(){
+    var pt = getPT(state.ptId); if(!pt) return;
+    var c = counts(pt);
+    var defs = [['all','Todas (' + pt.notes.length + ')'],['def', SHORT.def + ' (' + c.def + ')'],
+                ['sec', SHORT.sec + ' (' + c.sec + ')'],['pen', SHORT.pen + ' (' + c.pen + ')']];
+    document.getElementById('filters').innerHTML = '<div class="chips">' + defs.map(function(d){
+      return '<button class="chip" data-filter="' + d[0] + '" aria-pressed="' + (state.filter === d[0]) + '">' + d[1] + '</button>';
+    }).join('') + '</div>';
+
+    var notes = pt.notes.filter(function(n){ return state.filter === 'all' || n.cat === state.filter; })
+                        .sort(function(a,b){ return b.ts - a.ts; });
+    document.getElementById('list').innerHTML = notes.length ? notes.map(function(n){
+      var cat = CATS[n.cat] ? n.cat : 'def';
+      return '<article class="note ' + cat + (n.done ? ' done' : '') + '">' +
+        '<div class="head"><span class="apoyo">Apoyo ' + esc(n.apoyo) + '</span>' +
+          '<span class="badge ' + cat + '">' + CATS[cat] + '</span></div>' +
+        '<div class="grid">' +
+          '<div><small>Salida</small><b>' + (esc(n.salida) || '-') + '</b></div>' +
+          '<div><small>Inicio</small><b>' + (esc(n.inicio) || '-') + '</b></div>' +
+          '<div><small>Final</small><b>' + (esc(n.final) || '-') + '</b></div>' +
+        '</div>' +
+        (n.text ? '<p class="text">' + esc(n.text) + '</p>' : '') +
+        '<div class="btn-row">' +
+          (cat === 'pen' ? '<label class="donebox"><input type="checkbox" data-done="' + n.id + '"' + (n.done ? ' checked' : '') + '>Hecha</label>' : '') +
+          '<button class="btn small" data-edit="' + n.id + '">Editar</button>' +
+          '<button class="btn small danger" data-del="' + n.id + '">Borrar</button>' +
+        '</div></article>';
+    }).join('') : '<div class="empty">' +
+        (pt.notes.length ? 'No hay anotaciones en esta clasificación.' : 'Añade la primera anotación con el formulario de arriba.') + '</div>';
+  }
+
+  function render(){
+    if(state.view === 'pt') renderPT(); else renderHome();
+  }
+
+  /* ---------- Acciones ---------- */
+  function summaryText(pt){
+    var out = [pt.name];
+    ['def','sec','pen'].forEach(function(k){
+      var ns = pt.notes.filter(function(n){ return n.cat === k; });
+      if(!ns.length) return;
+      out.push('', CATS[k].toUpperCase());
+      ns.slice().sort(function(a,b){ return a.ts - b.ts; }).forEach(function(n){
+        var parts = ['Apoyo ' + n.apoyo];
+        if(n.salida) parts.push('Salida ' + n.salida);
+        if(n.inicio) parts.push('Inicio ' + n.inicio);
+        if(n.final) parts.push('Final ' + n.final);
+        if(n.text) parts.push(n.text.replace(/\s*\n\s*/g,' '));
+        out.push('- ' + (n.done ? '[hecha] ' : '') + parts.join(', '));
+      });
+    });
+    return out.join('\n');
+  }
+
+  function copyText(t){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(t);
+    }
+    return new Promise(function(res, rej){
+      var ta = document.createElement('textarea');
+      ta.value = t; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy') ? res() : rej(); }catch(e){ rej(e); }
+      document.body.removeChild(ta);
+    });
+  }
+
+  function exportData(){
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'anotaciones-ptcd-' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  }
+
+  function importData(file){
+    var r = new FileReader();
+    r.onload = function(){
+      try{
+        var d = JSON.parse(r.result);
+        if(!d || !Array.isArray(d.pts)) throw new Error('formato');
+        if(!confirm('Esto sustituirá los datos actuales de este dispositivo. ¿Continuar?')) return;
+        data = d; save(); state.view = 'home'; render(); toast('Copia cargada');
+      }catch(e){ toast('El archivo no es una copia válida'); }
+    };
+    r.readAsText(file);
+  }
+
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-open],[data-act],[data-filter],[data-edit],[data-del]');
+    if(!t) return;
+    var pt = getPT(state.ptId);
+
+    if(t.dataset.open){
+      state.view = 'pt'; state.ptId = t.dataset.open; state.filter = 'all'; state.editId = null;
+      state.salida = ''; state.cat = 'def'; render(); window.scrollTo(0,0); return;
+    }
+    if(t.dataset.filter){ state.filter = t.dataset.filter; renderList(); return; }
+    if(t.dataset.edit){ state.editId = t.dataset.edit; renderPT(); window.scrollTo(0,0); return; }
+    if(t.dataset.del){
+      if(pt && confirm('¿Borrar esta anotación?')){
+        pt.notes = pt.notes.filter(function(n){ return n.id !== t.dataset.del; });
+        if(state.editId === t.dataset.del) state.editId = null;
+        save(); renderPT();
+      }
+      return;
+    }
+    switch(t.dataset.act){
+      case 'back': state.view = 'home'; state.ptId = null; state.editId = null; render(); window.scrollTo(0,0); break;
+      case 'cancel-edit': state.editId = null; renderPT(); break;
+      case 'del-pt':
+        if(pt && confirm('¿Borrar "' + pt.name + '" y todas sus anotaciones?')){
+          data.pts = data.pts.filter(function(p){ return p.id !== pt.id; });
+          save(); state.view = 'home'; state.ptId = null; render();
+        }
+        break;
+      case 'copy':
+        if(pt) copyText(summaryText(pt)).then(function(){ toast('Resumen copiado'); },
+                                              function(){ toast('No se pudo copiar'); });
+        break;
+      case 'export': exportData(); break;
+      case 'import': document.getElementById('importFile').click(); break;
+    }
+  });
+
+  document.addEventListener('change', function(e){
+    var t = e.target;
+    if(t.id === 'importFile' && t.files && t.files[0]){ importData(t.files[0]); t.value = ''; return; }
+    if(t.dataset && t.dataset.done){
+      var pt = getPT(state.ptId); if(!pt) return;
+      pt.notes.forEach(function(n){ if(n.id === t.dataset.done) n.done = t.checked; });
+      save(); renderList();
+    }
+  });
+
+  document.addEventListener('submit', function(e){
+    e.preventDefault();
+    var f = e.target;
+
+    if(f.id === 'ptForm'){
+      var name = f.elements.name.value.trim();
+      if(!name) return;
+      var found = data.pts.filter(function(p){ return p.name.toLowerCase() === name.toLowerCase(); })[0];
+      if(found){ toast('Ese PT/CD ya existe, se abre'); }
+      else{
+        found = { id: uid(), name: name, created: Date.now(), notes: [] };
+        data.pts.push(found); save();
+      }
+      state.view = 'pt'; state.ptId = found.id; state.filter = 'all'; state.editId = null;
+      state.salida = ''; state.cat = 'def'; render(); window.scrollTo(0,0);
+      return;
+    }
+
+    if(f.id === 'noteForm'){
+      var pt = getPT(state.ptId); if(!pt) return;
+      var el = f.elements;
+      var apoyo = el.apoyo.value.trim();
+      if(!apoyo){ el.apoyo.focus(); return; }
+      var catSel = f.querySelector('input[name="cat"]:checked');
+      var vals = {
+        apoyo: apoyo,
+        salida: el.salida.value.trim(),
+        inicio: el.inicio.value.trim(),
+        final: el.final.value.trim(),
+        cat: catSel ? catSel.value : 'def',
+        text: el.text.value.trim()
+      };
+      if(state.editId){
+        pt.notes.forEach(function(n){ if(n.id === state.editId){ for(var k in vals) n[k] = vals[k]; } });
+        state.editId = null; toast('Cambios guardados');
+      }else{
+        vals.id = uid(); vals.ts = Date.now(); vals.done = false;
+        pt.notes.push(vals); toast('Anotación añadida');
+      }
+      state.salida = vals.salida; state.cat = vals.cat;
+      save(); renderPT();
+      var next = document.querySelector('#noteForm input[name="apoyo"]');
+      if(next && !state.editId) next.focus();
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
